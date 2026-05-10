@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+﻿import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -6,14 +6,32 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
+  // Enable CORS - allow multiple origins for production
+  const allowedOrigins = [
+    'http://localhost:3001',
+    'http://localhost:3000',
+    process.env.CORS_ORIGIN,
+    process.env.FRONTEND_URL,
+  ].filter(Boolean) as string[];
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (mobile apps, curl, etc)
+      if (!origin) return callback(null, true);
+      
+      // Allow if origin matches allowed list or is a Vercel preview URL
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.vercel.sh')
+      ) {
+        return callback(null, true);
+      }
+      
+      callback(null, false);
+    },
     credentials: true,
   });
-
-  // Global prefix
-  app.setGlobalPrefix('api');
 
   // Validation
   app.useGlobalPipes(
@@ -32,16 +50,6 @@ async function bootstrap() {
     .addBearerAuth()
     .addTag('Auth', 'Authentication endpoints')
     .addTag('Users', 'User management')
-    .addTag('CRM - Customers', 'Customer management')
-    .addTag('CRM - Leads', 'Lead management')
-    .addTag('CRM - Sales Orders', 'Sales order management')
-    .addTag('Inventory - Products', 'Product management')
-    .addTag('Inventory - Warehouses', 'Warehouse management')
-    .addTag('Finance - Invoices', 'Invoice management')
-    .addTag('Finance - Expenses', 'Expense management')
-    .addTag('HRM - Employees', 'Employee management')
-    .addTag('HRM - Attendance', 'Attendance tracking')
-    .addTag('HRM - Payroll', 'Payroll management')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -49,7 +57,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 PICA ERP API running on http://localhost:${port}`);
-  console.log(`📚 Swagger docs at http://localhost:${port}/api/docs`);
+  console.log(`API running on http://localhost:${port}`);
 }
 bootstrap();

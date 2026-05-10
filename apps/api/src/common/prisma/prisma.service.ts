@@ -1,22 +1,24 @@
 ﻿import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { PrismaLibSQL } from '@prisma/adapter-libsql';
+import { createClient } from '@libsql/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    const adapter = new PrismaLibSql({
+    const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL || 'file:./dev.db',
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
 
+    const adapter = new PrismaLibSQL(libsql);
+
     super({
-      // @ts-ignore
       adapter,
       log: process.env.NODE_ENV === 'development' 
         ? ['warn', 'error']
         : ['error'],
-    } as any);
+    });
   }
 
   async onModuleInit() {
