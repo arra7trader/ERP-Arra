@@ -1,0 +1,238 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  name          String
+  avatar        String?
+  phone         String?
+  role          String    @default("admin")
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  
+  videos        Video[]
+  budgets       Budget[]
+  talents       Talent[]
+  campaigns     MarketingCampaign[]
+  aiLogs        AILog[]
+  notifications Notification[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Video {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  concept         String?
+  script          String?
+  
+  status          String    @default("ideation")
+  priority        String    @default("medium")
+  
+  plannedStartDate  DateTime?
+  plannedEndDate    DateTime?
+  actualStartDate   DateTime?
+  actualEndDate     DateTime?
+  publishDate       DateTime?
+  
+  duration        Int?
+  category        String?
+  tags            String?
+  thumbnailUrl    String?
+  videoUrl        String?
+  youtubeId       String?
+  
+  aiRecommendations String?
+  aiScheduleSuggestion DateTime?
+  
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  budgets         Budget[]
+  videoTalents    VideoTalent[]
+  campaigns       MarketingCampaign[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Budget {
+  id              String    @id @default(uuid())
+  videoId         String
+  userId          String
+  
+  category        String
+  description     String
+  
+  plannedAmount   Float
+  actualAmount    Float     @default(0)
+  
+  status          String    @default("planned")
+  
+  paymentDate     DateTime?
+  paymentMethod   String?
+  receipt         String?
+  notes           String?
+  
+  aiRiskFlag      Boolean   @default(false)
+  aiNotes         String?
+  
+  video           Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Talent {
+  id              String    @id @default(uuid())
+  name            String
+  email           String?
+  phone           String?
+  
+  gender          String?
+  ageRange        String?
+  ethnicity       String?
+  
+  height          String?
+  bodyType        String?
+  hairColor       String?
+  hairStyle       String?
+  skinTone        String?
+  
+  faceReference   String?
+  bodyReference   String?
+  voiceSample     String?
+  
+  specialty       String?
+  rate            Float?
+  currency        String    @default("IDR")
+  
+  aiConsistencyScore Float?
+  aiParameters    String?
+  
+  isActive        Boolean   @default(true)
+  notes           String?
+  
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  videoTalents    VideoTalent[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model VideoTalent {
+  id              String    @id @default(uuid())
+  videoId         String
+  talentId        String
+  
+  role            String
+  characterName   String?
+  
+  agreedFee       Float?
+  paidAmount      Float     @default(0)
+  paymentStatus   String    @default("pending")
+  
+  shootingDates   String?
+  
+  notes           String?
+  
+  video           Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  talent          Talent    @relation(fields: [talentId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([videoId, talentId])
+}
+
+model MarketingCampaign {
+  id              String    @id @default(uuid())
+  videoId         String
+  userId          String
+  
+  name            String
+  platform        String
+  campaignType    String
+  
+  scheduledDate   DateTime?
+  publishedDate   DateTime?
+  status          String    @default("draft")
+  
+  caption         String?
+  hashtags        String?
+  mediaUrl        String?
+  postUrl         String?
+  
+  aiGeneratedCopy String?
+  aiSuggestions   String?
+  
+  impressions     Int?
+  engagement      Int?
+  clicks          Int?
+  
+  adBudget        Float     @default(0)
+  adSpent         Float     @default(0)
+  
+  notes           String?
+  
+  video           Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model AILog {
+  id              String    @id @default(uuid())
+  userId          String
+  
+  requestType     String
+  prompt          String
+  context         String?
+  
+  response        String
+  tokensUsed      Int?
+  
+  entityType      String?
+  entityId        String?
+  
+  status          String    @default("success")
+  errorMessage    String?
+  
+  user            User      @relation(fields: [userId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+}
+
+model Notification {
+  id              String    @id @default(uuid())
+  userId          String
+  
+  title           String
+  message         String
+  type            String    @default("info")
+  category        String?
+  
+  entityType      String?
+  entityId        String?
+  link            String?
+  
+  isRead          Boolean   @default(false)
+  isAIGenerated   Boolean   @default(false)
+  
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+}

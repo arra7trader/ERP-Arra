@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: erp
+      POSTGRES_PASSWORD: erp123
+      POSTGRES_DB: erp_superior
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  api:
+    build: ../apps/api
+    command: npm run start:prod
+    environment:
+      DATABASE_URL: postgres://erp:erp123@db:5432/erp_superior
+    ports:
+      - '3001:3001'
+    depends_on:
+      - db
+  web:
+    build: ../apps/web
+    command: npm run start
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+volumes:
+  db_data:

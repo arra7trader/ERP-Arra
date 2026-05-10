@@ -1,0 +1,34 @@
+{
+  "name": "pica-erp",
+  "version": "1.0.0",
+  "description": "PICA ERP - Modern Enterprise Resource Planning System",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:all",
+    "dev:api": "npm run start:dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:all": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "build": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:web": "npm run build --workspace=apps/web",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "db:generate": "npm run prisma:generate --workspace=apps/api",
+    "db:push": "npm run prisma:push --workspace=apps/api",
+    "db:seed": "npm run prisma:seed --workspace=apps/api",
+    "db:setup": "npm run db:generate && npm run db:push && npm run db:seed",
+    "db:studio": "npm run prisma:studio --workspace=apps/api",
+    "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
