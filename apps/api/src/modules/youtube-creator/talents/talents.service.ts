@@ -125,15 +125,17 @@ export class TalentsService {
       where: { talent: { userId } },
     });
 
+    const bySpecialty: Record<string, number> = {};
+    talents.forEach((t: any) => {
+      const key = t.specialty || 'other';
+      bySpecialty[key] = (bySpecialty[key] || 0) + 1;
+    });
+
     return {
       totalTalents: talents.length,
-      bySpecialty: talents.reduce((acc, t) => {
-        const key = t.specialty || 'other';
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
+      bySpecialty,
       totalAssignments: videoTalents.length,
-      pendingPayments: videoTalents.filter(vt => vt.paymentStatus !== 'paid').length,
+      pendingPayments: videoTalents.filter((vt: any) => vt.paymentStatus !== 'paid').length,
     };
   }
 }
